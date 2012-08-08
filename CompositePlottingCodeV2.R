@@ -434,8 +434,9 @@ density()
  
  prop.acute<-ParamMat$rho*(1-ParamMat$omega)
  
- paramsets<-c(1,3,5,7)
- ratio<-ad.morts<-years<-tau<-Ns<-rep(NA,4*70)
+ #ParamMat.small<-subset(ParamMat,tau==.001)
+ paramsets<-c(5,6,13,14)
+ ratio<-ad.morts<-years<-prop.acute<-Ns<-rep(NA,4*70)
  pers.times<-rep(NA,4*70)
  
  for(i in 1:4){
@@ -445,23 +446,20 @@ density()
 #     for(k in 1:floor(10000/365)){
        ad.morts[(i-1)*70+j]<-sum(na.omit(SimTest$AdultMort[730:(730+209)]))
        Ns[(i-1)*70+j]<-SimTest$N[730]
-       tau[(i-1)*70+j]<-ParamMat$tau[paramsets[i]]
+       prop.acute[(i-1)*70+j]<-ParamMat$rho[paramsets[i]]*(1-ParamMat$omega[paramsets[i]])
        ratio[(i-1)*70+j]<-ifelse(Ns[(i-1)*70+j]<=5,NA,ad.morts[(i-1)*70+j]/Ns[(i-1)*70+j])
 #     }
    }
  }
  
- taus<-as.vector(tau)
- ratios<-as.vector(ratio)
- year<-as.vector(years)
- N<-as.vector(Ns)
- ad.mort<-as.vector(ad.morts)
  
- dat<-data.frame(cbind(taus,ratios,year,N,ad.mort))
+ dat<-data.frame(cbind(prop.acute,ratio,Ns,ad.morts))
  # dat<-dat[complete.cases(dat),]
- admort1<-ggplot(dat,aes(x=year,y=ratios,colour=factor(taus)))
- (admort2<-admort1+geom_point(aes(colour=factor(tau),alpha=.1))+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
- (admort2<-admort1+geom_point(aes(alpha=.1))+stat_smooth(aes(fill=factor(taus)),alpha=.5,method="loess",n=20)+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1")+scale_fill_brewer(type="qual",palette="Set1"))
+ admort1<-ggplot(dat,aes(x=factor(prop.acute),y=ratio))
+# (admort2<-admort1+geom_point(aes(colour=factor(prop.acute),alpha=.1))+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
+# (admort2<-admort1+geom_point(aes(alpha=.1))+stat_smooth(aes(fill=factor(taus)),alpha=.5,method="loess",n=20)+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1")+scale_fill_brewer(type="qual",palette="Set1"))
+ (admort2<-admort1+geom_point(aes(alpha=.1))+geom_boxplot()+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1")+xlab("proportion acute")+ylab("first year adult mortality"))
+# (admort2<-admort1+geom_point(aes(colour=factor(prop.acute),alpha=.1))+stat_boxplot(aes(y=ratio,x=factor(prop.acute)))+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
  
  
 #-----------------------------------------#
