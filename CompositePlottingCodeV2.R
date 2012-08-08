@@ -4,11 +4,24 @@
 require(ggplot2)
 require(reshape2)
 require(lattice)
+require(latticeExtra)
 
 
 #--------------------------#
 #-- 3D pop trajectories ---#
 #--------------------------#
+compd.data<-read.csv("work/StatProjects/Raina/sheep/datasets/compiled_data_summary_24June2012_krmmod2.csv",header=T,sep="")
+pops.in<-c("Wenaha","BlackButte","Redbird","MuirCreek","BigCanyon","SheepMountain")
+dat<-subset(compd.data,Pop %in% pops.in & is.na(YearsSinceInvasion2)==F)
+dat$newPop<-as.numeric(factor(dat$Pop))
+dat$YearsSinceInvasion3<-as.numeric(dat$YearsSinceInvasion2)
+
+
+
+pl<-cloud(x=as.numeric(dat$newPop),y=dat$YearsSinceInvasion3,z=dat$PopEst,panel.3d.cloud=panel.3d.bars)
+
+?panel.3dbars
+
 
 #-----------------------------------------#
 #-- conceptual figure (cumulative dose) --#
