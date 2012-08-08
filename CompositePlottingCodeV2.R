@@ -122,7 +122,18 @@ ParamMat<-expand.grid(list(model=model,
                            LambcontactnumberIn=LambcontactnumberIn,
                            omega=omega))
 
-  
+rho.1.min.omega<-ParamMat$rho*(1-ParamMat$omega)
+rho.1.min.omeg<-rep(rho.1.min.omega,each=10)
+pers.times<-ext.popsize<-rep(NA,length(rho.1.min.omeg))
+ for(i in 1:dim(ParamMat)[1]){
+   for(j in 1:10){
+     load(paste("work/StatProjects/Raina/sheep/Papers/DynamicModel/Code/IndividualTrackingModel/TwoSeasonModels_11May2012/TwoSeasonsGitRepo/02August2012/PassBack/Simout_02August2012__omega_",i,"_",j,sep=""))
+     pers.times[(i-1)*10+j]<-max(na.omit(SimTest$persistence))
+     ext.popsize[(i-1)*10+j]<-ifelse(max(na.omit(SimTest$persistence))==0,SimTest$N[729],SimTest$N[max(na.omit(SimTest$persistence))] )
+   }
+ }
+ 
+ 
 #-----------------------------------------#
 #-- prop chronic figure ------------------#
 #-----------------------------------------#
@@ -214,21 +225,21 @@ names(propdat)<-c("tau","q.025","q.975")
  (p <- ggplot(datapolytau1, aes(x=x, y=y)) + geom_polygon(aes(fill=tau, group=id))) 
  
  
- #-- now make polygon data --#
- xs<-c(c(2:length(na.omit(q.025[1,])),rev(2:length(na.omit(q.025[1,])))),c(2:length(na.omit(q.025[2,])),rev(2:length(na.omit(q.025[2,])))),c(2:length(na.omit(q.025[3,])),rev(2:length(na.omit(q.025[3,])))),c(2:length(na.omit(q.025[4,])),rev(2:length(na.omit(q.025[4,])))))
- ys<-c(c(q.025[1,2:length(na.omit(q.025[1,]))],rev(q.975[1,2:length(na.omit(q.975[1,]))])),c(q.025[2,2:length(na.omit(q.025[2,]))],rev(q.975[2,2:length(na.omit(q.975[2,]))])),c(q.025[3,2:length(na.omit(q.025[3,]))],rev(q.975[3,2:length(na.omit(q.975[3,]))])),c(q.025[4,2:length(na.omit(q.025[4,]))],rev(q.975[4,2:length(na.omit(q.975[4,]))])))
- # value<-data.frame(value = rep(ParamMat$tau[paramsets[1]], 4))
- positions <- data.frame(id =c(rep(1, length(na.omit(q.025[1,]))*2-2),rep(2, length(na.omit(q.025[2,]))*2-2),rep(3, length(na.omit(q.025[3,]))*2-2),rep(4, length(na.omit(q.025[4,]))*2-2)),  x = xs, y=ys) 
- taus<-ParamMat$tau[paramsets[positions$id]]
- datapolytau1<-data.frame(positions,taus)
- names(datapolytau1)<-c("id","x","y","tau")
- datapolytau1$tau2<-factor(datapolytau1$tau,levels=c("0.01","0.005","0.001","5e-04"))
- 
-# (p <- ggplot(datapolytau, aes(x=x, y=y)) + geom_polygon(aes(fill=as.factor(tau), group=id,alpha=.2))+scale_fill_brewer(type="qual",palette="Set1")+theme_bw()) 
- 
- (p <- ggplot(datapolytau1, aes(x=x, y=y)) + geom_polygon(aes(fill=factor(tau), group=id,alpha=.2))+scale_fill_brewer(type="qual",palette="Set1")+theme_bw()) 
- 
- 
+# #-- now make polygon data --#
+# xs<-c(c(2:length(na.omit(q.025[1,])),rev(2:length(na.omit(q.025[1,])))),c(2:length(na.omit(q.025[2,])),rev(2:length(na.omit(q.025[2,])))),c(2:length(na.omit(q.025[3,])),rev(2:length(na.omit(q.025[3,])))),c(2:length(na.omit(q.025[4,])),rev(2:length(na.omit(q.025[4,])))))
+# ys<-c(c(q.025[1,2:length(na.omit(q.025[1,]))],rev(q.975[1,2:length(na.omit(q.975[1,]))])),c(q.025[2,2:length(na.omit(q.025[2,]))],rev(q.975[2,2:length(na.omit(q.975[2,]))])),c(q.025[3,2:length(na.omit(q.025[3,]))],rev(q.975[3,2:length(na.omit(q.975[3,]))])),c(q.025[4,2:length(na.omit(q.025[4,]))],rev(q.975[4,2:length(na.omit(q.975[4,]))])))
+# # value<-data.frame(value = rep(ParamMat$tau[paramsets[1]], 4))
+# positions <- data.frame(id =c(rep(1, length(na.omit(q.025[1,]))*2-2),rep(2, length(na.omit(q.025[2,]))*2-2),rep(3, length(na.omit(q.025[3,]))*2-2),rep(4, length(na.omit(q.025[4,]))*2-2)),  x = xs, y=ys) 
+# taus<-ParamMat$tau[paramsets[positions$id]]
+# datapolytau1<-data.frame(positions,taus)
+# names(datapolytau1)<-c("id","x","y","tau")
+# datapolytau1$tau2<-factor(datapolytau1$tau,levels=c("0.01","0.005","0.001","5e-04"))
+# 
+## (p <- ggplot(datapolytau, aes(x=x, y=y)) + geom_polygon(aes(fill=as.factor(tau), group=id,alpha=.2))+scale_fill_brewer(type="qual",palette="Set1")+theme_bw()) 
+# 
+# (p <- ggplot(datapolytau1, aes(x=x, y=y)) + geom_polygon(aes(fill=factor(tau), group=id,alpha=.2))+scale_fill_brewer(type="qual",palette="Set1")+theme_bw()) 
+# 
+# 
  #-- now make polygon data --#
  xs<-c(c(2:length(na.omit(q.025[2,])),rev(2:length(na.omit(q.025[2,])))),c(2:length(na.omit(q.025[3,])),rev(2:length(na.omit(q.025[3,])))),c(2:length(na.omit(q.025[4,])),rev(2:length(na.omit(q.025[4,])))),c(2:length(na.omit(q.025[1,])),rev(2:length(na.omit(q.025[1,])))))
  ys<-c(c(q.025[2,2:length(na.omit(q.025[2,]))],rev(q.975[2,2:length(na.omit(q.975[2,]))])),c(q.025[3,2:length(na.omit(q.025[3,]))],rev(q.975[3,2:length(na.omit(q.975[3,]))])),c(q.025[4,2:length(na.omit(q.025[4,]))],rev(q.975[4,2:length(na.omit(q.975[4,]))])),c(q.025[1,2:length(na.omit(q.025[1,]))],rev(q.975[1,2:length(na.omit(q.975[1,]))])))
