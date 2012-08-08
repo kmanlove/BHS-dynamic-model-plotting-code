@@ -122,8 +122,8 @@ ParamMat<-expand.grid(list(model=model,
                            LambcontactnumberIn=LambcontactnumberIn,
                            omega=omega))
 
-rho.1.min.omega<-ParamMat$rho*(1-ParamMat$omega)
-rho.1.min.omeg<-rep(rho.1.min.omega,each=10)
+CRratio<-ParamMat$Gamma/(ParamMat$Nu/10)
+CRratio<-rep(CRratio,each=10)
 pers.times<-ext.popsize<-rep(NA,length(rho.1.min.omeg))
  for(i in 1:dim(ParamMat)[1]){
    for(j in 1:10){
@@ -132,7 +132,12 @@ pers.times<-ext.popsize<-rep(NA,length(rho.1.min.omeg))
      ext.popsize[(i-1)*10+j]<-ifelse(max(na.omit(SimTest$persistence))==0,SimTest$N[729],SimTest$N[max(na.omit(SimTest$persistence))] )
    }
  }
+
+ dat<-data.frame(cbind(CRratio,pers.times,ext.popsize))
+ names(dat)<-c("CRratio","pers.times","ext.popsize")
  
+ propacute1<-ggplot(dat,aes(x=CRratio,y=pers.times))
+ (propacute2<-propacute1+geom_point(aes(size=ext.popsize,colour=ext.popsize))+theme_bw()+xlab("proportion acute")+ylab("persistence time")+scale_colour_gradient2(low="blue",mid="red",high="yellow",midpoint=100)+coord_trans(xtrans="log")+scale_size(range=c(1,20)))
  
 #-----------------------------------------#
 #-- prop chronic figure ------------------#
