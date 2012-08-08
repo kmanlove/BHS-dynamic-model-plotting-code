@@ -13,15 +13,14 @@ require(latticeExtra)
 compd.data<-read.csv("work/StatProjects/Raina/sheep/datasets/compiled_data_summary_24June2012_krmmod2.csv",header=T,sep="")
 pops.in<-c("Wenaha","BlackButte","Redbird","MuirCreek","BigCanyon","SheepMountain")
 dat<-subset(compd.data,Pop %in% pops.in & is.na(YearsSinceInvasion2)==F)
-dat$newPop<-as.numeric(factor(dat$Pop))
-dat$YearsSinceInvasion3<-as.numeric(dat$YearsSinceInvasion2)
+tab1<-table(factor(dat$Pop),dat$YearsSinceInvasion2)
+newPop<-as.numeric(factor(dat$Pop))
+YearsSinceInvasion3<-as.numeric(dat$YearsSinceInvasion2)
+PopEst<-dat$PopESt
 
-
-
-pl<-cloud(x=as.numeric(dat$newPop),y=dat$YearsSinceInvasion3,z=dat$PopEst,panel.3d.cloud=panel.3d.bars)
+pl<-cloud(x=as.numeric(newPop),y=YearsSinceInvasion3,z=PopEst,panel.3d.cloud=panel.3d.bars)
 
 ?panel.3dbars
-
 
 #-----------------------------------------#
 #-- conceptual figure (cumulative dose) --#
@@ -383,7 +382,88 @@ density()
 #-- first year adult mort by prop acute --#
 #-----------------------------------------#
  
-
+ model<-c("CD")
+ timesteps<-10000
+ BirthRate<-.85
+ SexRatio<-.5
+ n<-c(100)
+ Recr<-.4
+ LambTransmissionProb<-c(.9)
+ SLSdecrease<-c(.8)
+ chronicdose<-.1
+ xi<-1/30
+ eta<-1/6
+ Gamma<-c(1/365)
+ Nu<-1/150
+ Alpha<-c(.9999)
+ rho<-c(.9999,.5)
+ tau<-c(.01,.005,.001,.0005)
+ AlphaChronic<-0
+ chronicdecrease<-0
+ PropRecovered<-0
+ ngroups<-2
+ GammaLamb<-.02
+ contactnumber<-1
+ LambcontactnumberIn<-.5
+ omega<-c(.5,.25)
+ 
+ ParamMat<-expand.grid(list(model=model,
+                            timesteps=timesteps,
+                            BirthRate=BirthRate,
+                            SexRatio=SexRatio,
+                            n=n,
+                            Recr=Recr,
+                            LambTransmissionProb=LambTransmissionProb,
+                            SLSdecrease=SLSdecrease,
+                            chronicdose=chronicdose,
+                            xi=xi,
+                            eta=eta,
+                            Gamma=Gamma,
+                            Nu=Nu,
+                            Alpha=Alpha,
+                            rho=rho,
+                            tau=tau,
+                            AlphaChronic=AlphaChronic,
+                            chronicdecrease=chronicdecrease,
+                            PropRecovered=PropRecovered,
+                            ngroups=ngroups,
+                            GammaLamb=GammaLamb,
+                            contactnumber=contactnumber,
+                            LambcontactnumberIn=LambcontactnumberIn,
+                            omega=omega))
+ 
+ prop.acute<-ParamMat$rho*(1-ParamMat$omega)
+ 
+ paramsets<-c(1,3,5,7)
+ ratio<-ad.morts<-years<-tau<-Ns<-rep(NA,4*70)
+ pers.times<-rep(NA,4*70)
+ 
+ for(i in 1:4){
+   for(j in 1:70){
+     load(paste("work/StatProjects/Raina/sheep/Papers/DynamicModel/Code/IndividualTrackingModel/TwoSeasonModels_11May2012/TwoSeasonsGitRepo/July30_2012/PassBack/Simout_30July2012__omega_",paramsets[i],"_",j,sep=""))
+     pers.times[(i-1)*70+j]<-max(na.omit(SimTest$persistence))
+#     for(k in 1:floor(10000/365)){
+       ad.morts[(i-1)*70+j]<-sum(na.omit(SimTest$AdultMort[730:(730+209)]))
+       Ns[(i-1)*70+j]<-SimTest$N[730]
+       tau[(i-1)*70+j]<-ParamMat$tau[paramsets[i]]
+       ratio[(i-1)*70+j]<-ifelse(Ns[(i-1)*70+j]<=5,NA,ad.morts[(i-1)*70+j]/Ns[(i-1)*70+j])
+#     }
+   }
+ }
+ 
+ taus<-as.vector(tau)
+ ratios<-as.vector(ratio)
+ year<-as.vector(years)
+ N<-as.vector(Ns)
+ ad.mort<-as.vector(ad.morts)
+ 
+ dat<-data.frame(cbind(taus,ratios,year,N,ad.mort))
+ # dat<-dat[complete.cases(dat),]
+ admort1<-ggplot(dat,aes(x=year,y=ratios,colour=factor(taus)))
+ (admort2<-admort1+geom_point(aes(colour=factor(tau),alpha=.1))+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
+ (admort2<-admort1+geom_point(aes(alpha=.1))+stat_smooth(aes(fill=factor(taus)),alpha=.5,method="loess",n=20)+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1")+scale_fill_brewer(type="qual",palette="Set1"))
+ 
+ 
 #-----------------------------------------#
 #-- first year r est by prop acute -------#
 #-----------------------------------------#
