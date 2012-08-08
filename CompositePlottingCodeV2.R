@@ -332,26 +332,34 @@ names(propdat)<-c("tau","q.025","q.975")
 # }
  
  paramsets<-c(1,3,5,7)
- ratio<-ad.morts<-years<-tau<-Ns<-rep(NA,4*70*floor(10000/365))
+ ratio<-ad.morts<-years<-tau<-Ns<-matrix(NA,4*70,floor(10000/365))
+ pers.times<-rep(NA,4*70)
   
    for(i in 1:4){
      for(j in 1:70){
        load(paste("work/StatProjects/Raina/sheep/Papers/DynamicModel/Code/IndividualTrackingModel/TwoSeasonModels_11May2012/TwoSeasonsGitRepo/July30_2012/PassBack/Simout_30July2012__omega_",paramsets[i],"_",j,sep=""))
-       for(k in 1:floor(10000/365)){
-         ad.morts[(i-1)*4+(j-1)*70+k]<-sum(na.omit(SimTest$AdultMort[((k-1)*365+210):(k*365+210)]))
-         Ns[(i-1)*4+(j-1)*70+k]<-SimTest$N[((k-1)*365+210)]
-         tau[(i-1)*4+(j-1)*70+k]<-ParamMat$tau[paramsets[i]]
-         years[(i-1)*4+(j-1)*70+k]<-k
-         ratio[(i-1)*4+(j-1)*70+k]<-ifelse(Ns[(i-1)*4+(j-1)*70+k]<=3,NA,ad.morts[(i-1)*4+(j-1)*70+k]/Ns[(i-1)*4+(j-1)*70+k])
+       pers.times[(i-1)*70+j]<-max(na.omit(SimTest$persistence))
+         for(k in 1:floor(10000/365)){
+          ad.morts[(i-1)*70+j,k]<-sum(na.omit(SimTest$AdultMort[((k-1)*365+210):(k*365+210)]))
+          Ns[(i-1)*70+j,k]<-SimTest$N[((k-1)*365+210)]
+          tau[(i-1)*70+j,k]<-ParamMat$tau[paramsets[i]]
+          years[(i-1)*70+j,k]<-k
+          ratio[(i-1)*70+j,k]<-ifelse(Ns[(i-1)*70+j,k]<=5,NA,ad.morts[(i-1)*70+j,k]/Ns[(i-1)*70+j,k])
        }
      }
    }
  
- dat<-data.frame(cbind(ratio,ad.morts,Ns,tau,years))
- dat<-dat[complete.cases(dat),]
- admort1<-ggplot(dat,aes(x=years,y=ratio,colour=factor(tau)))
+ taus<-as.vector(tau)
+ ratios<-as.vector(ratio)
+ year<-as.vector(years)
+ N<-as.vector(Ns)
+ ad.mort<-as.vector(ad.morts)
+ 
+ dat<-data.frame(cbind(taus,ratios,year,N,ad.mort))
+# dat<-dat[complete.cases(dat),]
+ admort1<-ggplot(dat,aes(x=year,y=ratios,colour=factor(taus)))
  (admort2<-admort1+geom_point(aes(colour=factor(tau),alpha=.1))+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
- (admort2<-admort1+geom_point(aes(alpha=.1))+stat_smooth(method="loess")+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
+ (admort2<-admort1+geom_point(aes(alpha=.1))+stat_smooth(aes(fill=factor(taus)),alpha=.5,method="loess",n=20)+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1")+scale_fill_brewer(type="qual",palette="Set1"))
  
 #---------------------------------------#
 #-- tau by persistence time ------------#
