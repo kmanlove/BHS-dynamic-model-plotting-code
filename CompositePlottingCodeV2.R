@@ -338,16 +338,20 @@ names(propdat)<-c("tau","q.025","q.975")
      for(j in 1:70){
        load(paste("work/StatProjects/Raina/sheep/Papers/DynamicModel/Code/IndividualTrackingModel/TwoSeasonModels_11May2012/TwoSeasonsGitRepo/July30_2012/PassBack/Simout_30July2012__omega_",paramsets[i],"_",j,sep=""))
        for(k in 1:floor(10000/365)){
-         ad.morts[(i-1)*4+(j-1)*70+k]<-sum(SimTest$AdultMort[((k-1)*365+210):(k*365+210)])
+         ad.morts[(i-1)*4+(j-1)*70+k]<-sum(na.omit(SimTest$AdultMort[((k-1)*365+210):(k*365+210)]))
          Ns[(i-1)*4+(j-1)*70+k]<-SimTest$N[((k-1)*365+210)]
          tau[(i-1)*4+(j-1)*70+k]<-ParamMat$tau[paramsets[i]]
          years[(i-1)*4+(j-1)*70+k]<-k
-         ratio[(i-1)*4+(j-1)*70+k]<-ifelse(Ns[(i-1)*4+(j-1)*70+k]<=5,NA,ad.morts[(i-1)*4+(j-1)*70+k]/Ns[(i-1)*4+(j-1)*70+k])
+         ratio[(i-1)*4+(j-1)*70+k]<-ifelse(Ns[(i-1)*4+(j-1)*70+k]<=3,NA,ad.morts[(i-1)*4+(j-1)*70+k]/Ns[(i-1)*4+(j-1)*70+k])
        }
      }
    }
  
  dat<-data.frame(cbind(ratio,ad.morts,Ns,tau,years))
+ dat<-dat[complete.cases(dat),]
+ admort1<-ggplot(dat,aes(x=years,y=ratio,colour=factor(tau)))
+ (admort2<-admort1+geom_point(aes(colour=factor(tau),alpha=.1))+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
+ (admort2<-admort1+geom_point(aes(alpha=.1))+stat_smooth(method="loess")+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1"))
  
 #---------------------------------------#
 #-- tau by persistence time ------------#
