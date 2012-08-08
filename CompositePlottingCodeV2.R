@@ -260,6 +260,95 @@ names(propdat)<-c("tau","q.025","q.975")
  (p <- ggplot(datapolytau1, aes(x=x, y=y)) + geom_polygon(aes(fill=factor(tau), group=id,alpha=.2))+scale_fill_brewer(type="qual",palette="Set1",name="tau")+theme_bw()+guides(alpha=F)+xlab("days")+ylab("proportion chronic")) 
  
  
+ 
+#---------------------------------------#
+#-- adult mortality by tau -------------#
+#---------------------------------------#
+ 
+ model<-c("CD")
+ timesteps<-10000
+ BirthRate<-.85
+ SexRatio<-.5
+ n<-c(100)
+ Recr<-.4
+ LambTransmissionProb<-c(.9)
+ SLSdecrease<-c(.8)
+ chronicdose<-.1
+ xi<-1/30
+ eta<-1/6
+ Gamma<-c(1/365)
+ Nu<-1/150
+ Alpha<-c(.9999)
+ rho<-c(.9999,.5)
+ tau<-c(.01,.005,.001,.0005)
+ AlphaChronic<-0
+ chronicdecrease<-0
+ PropRecovered<-0
+ ngroups<-2
+ GammaLamb<-.02
+ contactnumber<-1
+ LambcontactnumberIn<-.5
+ omega<-c(.5,.25)
+ 
+ ParamMat<-expand.grid(list(model=model,
+                            timesteps=timesteps,
+                            BirthRate=BirthRate,
+                            SexRatio=SexRatio,
+                            n=n,
+                            Recr=Recr,
+                            LambTransmissionProb=LambTransmissionProb,
+                            SLSdecrease=SLSdecrease,
+                            chronicdose=chronicdose,
+                            xi=xi,
+                            eta=eta,
+                            Gamma=Gamma,
+                            Nu=Nu,
+                            Alpha=Alpha,
+                            rho=rho,
+                            tau=tau,
+                            AlphaChronic=AlphaChronic,
+                            chronicdecrease=chronicdecrease,
+                            PropRecovered=PropRecovered,
+                            ngroups=ngroups,
+                            GammaLamb=GammaLamb,
+                            contactnumber=contactnumber,
+                            LambcontactnumberIn=LambcontactnumberIn,
+                            omega=omega))
+ 
+ #-- need annual adult mortality rates --#
+# paramsets<-c(1,3,5,7)
+# ad.morts<-Ns<-array(NA,dim=c(4,70,floor(10000/365)))
+# years<-
+# tau<-
+#
+# for(i in 1:4){
+#   for(j in 1:70){
+#   load(paste("work/StatProjects/Raina/sheep/Papers/DynamicModel/Code/IndividualTrackingModel/TwoSeasonModels_11May2012/TwoSeasonsGitRepo/July30_2012/PassBack/Simout_30July2012__omega_",paramsets[i],"_",j,sep=""))
+#    for(k in 1:floor(10000/365)){
+#      ad.morts[i,j,k]<-sum(SimTest$AdultMort[((k-1)*365+210):(k*365+210)])
+#      Ns[i,j,k]<-SimTest$N[((k-1)*365+210)]
+#    }
+#   }
+# }
+ 
+ paramsets<-c(1,3,5,7)
+ ratio<-ad.morts<-years<-tau<-Ns<-rep(NA,4*70*floor(10000/365))
+  
+   for(i in 1:4){
+     for(j in 1:70){
+       load(paste("work/StatProjects/Raina/sheep/Papers/DynamicModel/Code/IndividualTrackingModel/TwoSeasonModels_11May2012/TwoSeasonsGitRepo/July30_2012/PassBack/Simout_30July2012__omega_",paramsets[i],"_",j,sep=""))
+       for(k in 1:floor(10000/365)){
+         ad.morts[(i-1)*4+(j-1)*70+k]<-sum(SimTest$AdultMort[((k-1)*365+210):(k*365+210)])
+         Ns[(i-1)*4+(j-1)*70+k]<-SimTest$N[((k-1)*365+210)]
+         tau[(i-1)*4+(j-1)*70+k]<-ParamMat$tau[paramsets[i]]
+         years[(i-1)*4+(j-1)*70+k]<-k
+         ratio[(i-1)*4+(j-1)*70+k]<-ifelse(Ns[(i-1)*4+(j-1)*70+k]<=5,NA,ad.morts[(i-1)*4+(j-1)*70+k]/Ns[(i-1)*4+(j-1)*70+k])
+       }
+     }
+   }
+ 
+ dat<-data.frame(cbind(ratio,ad.morts,Ns,tau,years))
+ 
 #---------------------------------------#
 #-- tau by persistence time ------------#
 #---------------------------------------#
@@ -268,6 +357,7 @@ density()
 #-----------------------------------------#
 #-- first year adult mort by prop acute --#
 #-----------------------------------------#
+ 
 
 #-----------------------------------------#
 #-- first year r est by prop acute -------#
