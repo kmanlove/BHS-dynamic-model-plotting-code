@@ -465,3 +465,80 @@ density()
 #-----------------------------------------#
 #-- first year r est by prop acute -------#
 #-----------------------------------------#
+ 
+ 
+ model<-c("CD")
+ timesteps<-10000
+ BirthRate<-.85
+ SexRatio<-.5
+ n<-c(100)
+ Recr<-.4
+ LambTransmissionProb<-c(.9)
+ SLSdecrease<-c(.8)
+ chronicdose<-.1
+ xi<-1/30
+ eta<-1/6
+ Gamma<-c(1/365)
+ Nu<-1/150
+ Alpha<-c(.9999)
+ rho<-c(.9999,.5)
+ tau<-c(.01,.005,.001,.0005)
+ AlphaChronic<-0
+ chronicdecrease<-0
+ PropRecovered<-0
+ ngroups<-2
+ GammaLamb<-.02
+ contactnumber<-1
+ LambcontactnumberIn<-.5
+ omega<-c(.5,.25)
+ 
+ ParamMat<-expand.grid(list(model=model,
+                            timesteps=timesteps,
+                            BirthRate=BirthRate,
+                            SexRatio=SexRatio,
+                            n=n,
+                            Recr=Recr,
+                            LambTransmissionProb=LambTransmissionProb,
+                            SLSdecrease=SLSdecrease,
+                            chronicdose=chronicdose,
+                            xi=xi,
+                            eta=eta,
+                            Gamma=Gamma,
+                            Nu=Nu,
+                            Alpha=Alpha,
+                            rho=rho,
+                            tau=tau,
+                            AlphaChronic=AlphaChronic,
+                            chronicdecrease=chronicdecrease,
+                            PropRecovered=PropRecovered,
+                            ngroups=ngroups,
+                            GammaLamb=GammaLamb,
+                            contactnumber=contactnumber,
+                            LambcontactnumberIn=LambcontactnumberIn,
+                            omega=omega))
+ 
+ prop.acute<-ParamMat$rho*(1-ParamMat$omega)
+ 
+ #ParamMat.small<-subset(ParamMat,tau==.001)
+ paramsets<-c(5,6,13,14)
+ Rest<-ad.morts<-years<-prop.acute<-N_1<-N_2<-rep(NA,4*70)
+ pers.times<-rep(NA,4*70)
+ 
+ for(i in 1:4){
+   for(j in 1:70){
+     load(paste("work/StatProjects/Raina/sheep/Papers/DynamicModel/Code/IndividualTrackingModel/TwoSeasonModels_11May2012/TwoSeasonsGitRepo/July30_2012/PassBack/Simout_30July2012__omega_",paramsets[i],"_",j,sep=""))
+     pers.times[(i-1)*70+j]<-max(na.omit(SimTest$persistence))
+#     ad.morts[(i-1)*70+j]<-sum(na.omit(SimTest$AdultMort[730:(730+209)]))
+     N_1[(i-1)*70+j]<-SimTest$N[730-(365-165)]
+     N_2[(i-1)*70+j]<-SimTest$N[730+165]
+     prop.acute[(i-1)*70+j]<-ParamMat$rho[paramsets[i]]*(1-ParamMat$omega[paramsets[i]])
+     Rest[(i-1)*70+j]<-ifelse(N_2[(i-1)*70+j]<=5,NA,(N_2[(i-1)*70+j]/N_1[(i-1)*70+j])-1)
+   }
+ }
+ 
+ 
+ dat<-data.frame(cbind(prop.acute,Rest,Ns,ad.morts))
+ admort1<-ggplot(dat,aes(x=factor(prop.acute),y=Rest))
+ (admort2<-admort1+geom_point(aes(alpha=.1))+geom_boxplot()+guides(alpha=F)+theme_bw()+scale_colour_brewer(type="qual",palette="Set1")+xlab("proportion acute")+ylab("estimated R in outbreak year"))
+ 
+ 
